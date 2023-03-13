@@ -22,6 +22,7 @@ class ConversationClientData {
   }
 
   static ConversationClientData decode(Object message) {
+    print("decode");
     final Map<Object?, Object?> pigeonMap = message as Map<Object?, Object?>;
     return ConversationClientData()
       ..myIdentity = pigeonMap['myIdentity'] as String?
