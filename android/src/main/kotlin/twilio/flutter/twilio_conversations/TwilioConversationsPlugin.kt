@@ -65,6 +65,8 @@ class TwilioConversationsPlugin : FlutterPlugin {
         var nativeDebug: Boolean = false
         val LOG_TAG = "Twilio_Conversations"
 
+        private var initialized = false
+
         @JvmStatic
         fun debug(msg: String) {
             if (nativeDebug) {
@@ -77,6 +79,15 @@ class TwilioConversationsPlugin : FlutterPlugin {
     }
 
     override fun onAttachedToEngine(@NonNull flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
+        if (initialized) {
+            Log.d(LOG_TAG, "TwilioConversationsPlugin.onAttachedToEngine: already initialized")
+            return
+        } else {
+            Log.d(LOG_TAG, "TwilioConversationsPlugin.onAttachedToEngine")
+        }
+
+        initialized = true
+
         instance = this
         messenger = flutterPluginBinding.binaryMessenger
         applicationContext = flutterPluginBinding.applicationContext
