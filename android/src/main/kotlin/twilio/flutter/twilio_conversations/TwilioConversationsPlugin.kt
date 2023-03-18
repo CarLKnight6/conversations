@@ -86,6 +86,9 @@ class TwilioConversationsPlugin : FlutterPlugin {
         Api.PluginApi.setup(flutterPluginBinding.binaryMessenger, pluginApi)
         Api.ConversationClientApi.setup(flutterPluginBinding.binaryMessenger, conversationClientApi)
         Api.ConversationApi.setup(flutterPluginBinding.binaryMessenger, conversationApi)
+        Api.ParticipantApi.setup(flutterPluginBinding.binaryMessenger, participantApi)
+        Api.MessageApi.setup(flutterPluginBinding.binaryMessenger, messageApi)
+        Api.UserApi.setup(flutterPluginBinding.binaryMessenger, userApi)
 
         if (initialized) {
             Log.d(LOG_TAG, "TwilioConversationsPlugin.onAttachedToEngine: already initialized")
@@ -93,10 +96,6 @@ class TwilioConversationsPlugin : FlutterPlugin {
         } else {
             Log.d(LOG_TAG, "TwilioConversationsPlugin.onAttachedToEngine")
         }
-
-        Api.ParticipantApi.setup(flutterPluginBinding.binaryMessenger, participantApi)
-        Api.MessageApi.setup(flutterPluginBinding.binaryMessenger, messageApi)
-        Api.UserApi.setup(flutterPluginBinding.binaryMessenger, userApi)
 
         flutterClientApi = Api.FlutterConversationClientApi(flutterPluginBinding.binaryMessenger)
         flutterLoggingApi = Api.FlutterLoggingApi(flutterPluginBinding.binaryMessenger)
