@@ -393,6 +393,7 @@ class ErrorInfoData {
 
 class _PluginApiCodec extends StandardMessageCodec {
   const _PluginApiCodec();
+
   @override
   void writeValue(WriteBuffer buffer, Object? value) {
     if (value is ConversationClientData) {
@@ -463,30 +464,35 @@ class PluginApi {
     final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
         'dev.flutter.pigeon.PluginApi.create', codec,
         binaryMessenger: _binaryMessenger);
-    final Map<Object?, Object?>? replyMap = await channel
-        .send(<Object>[arg_jwtToken, arg_properties]) as Map<Object?, Object?>?;
-    if (replyMap == null) {
+    try {
+      final Map<Object?, Object?>? replyMap =
+          await channel.send(<Object>[arg_jwtToken, arg_properties])
+              as Map<Object?, Object?>?;
+      if (replyMap != null && replyMap['error'] != null) {
+        final Map<Object?, Object?> error =
+            (replyMap['error'] as Map<Object?, Object?>?)!;
+        throw PlatformException(
+          code: (error['code'] as String?)!,
+          message: error['message'] as String?,
+          details: error['details'],
+        );
+      } else {
+        return (replyMap!['result'] as ConversationClientData?)!;
+      }
+    } catch (e) {
+      print("TwilioConversationsPlugin create error $e");
       throw PlatformException(
         code: 'channel-error',
-        message: 'Unable to establish connection on channel.',
+        message: 'Error creating plugin: $e',
         details: null,
       );
-    } else if (replyMap['error'] != null) {
-      final Map<Object?, Object?> error =
-          (replyMap['error'] as Map<Object?, Object?>?)!;
-      throw PlatformException(
-        code: (error['code'] as String?)!,
-        message: error['message'] as String?,
-        details: error['details'],
-      );
-    } else {
-      return (replyMap['result'] as ConversationClientData?)!;
     }
   }
 }
 
 class _ConversationClientApiCodec extends StandardMessageCodec {
   const _ConversationClientApiCodec();
+
   @override
   void writeValue(WriteBuffer buffer, Object? value) {
     if (value is AttributesData) {
@@ -769,6 +775,7 @@ class ConversationClientApi {
 
 class _ConversationApiCodec extends StandardMessageCodec {
   const _ConversationApiCodec();
+
   @override
   void writeValue(WriteBuffer buffer, Object? value) {
     if (value is AttributesData) {
@@ -1605,6 +1612,7 @@ class ConversationApi {
 
 class _ParticipantApiCodec extends StandardMessageCodec {
   const _ParticipantApiCodec();
+
   @override
   void writeValue(WriteBuffer buffer, Object? value) {
     if (value is AttributesData) {
@@ -1728,6 +1736,7 @@ class ParticipantApi {
 
 class _MessageApiCodec extends StandardMessageCodec {
   const _MessageApiCodec();
+
   @override
   void writeValue(WriteBuffer buffer, Object? value) {
     if (value is AttributesData) {
@@ -1878,6 +1887,7 @@ class MessageApi {
 
 class _UserApiCodec extends StandardMessageCodec {
   const _UserApiCodec();
+
   @override
   void writeValue(WriteBuffer buffer, Object? value) {
     if (value is AttributesData) {
@@ -1967,6 +1977,7 @@ class UserApi {
 
 class _FlutterConversationClientApiCodec extends StandardMessageCodec {
   const _FlutterConversationClientApiCodec();
+
   @override
   void writeValue(WriteBuffer buffer, Object? value) {
     if (value is AttributesData) {
@@ -2150,42 +2161,72 @@ abstract class FlutterConversationClientApi {
       _FlutterConversationClientApiCodec();
 
   void error(ErrorInfoData errorInfoData);
+
   void conversationAdded(ConversationData conversationData);
+
   void conversationUpdated(ConversationUpdatedData event);
+
   void conversationDeleted(ConversationData conversationData);
+
   void clientSynchronization(String synchronizationStatus);
+
   void conversationSynchronizationChange(ConversationData conversationData);
+
   void connectionStateChange(String connectionState);
+
   void tokenAboutToExpire();
+
   void tokenExpired();
+
   void userSubscribed(UserData userData);
+
   void userUnsubscribed(UserData userData);
+
   void userUpdated(UserData userData, String reason);
+
   void addedToConversationNotification(String conversationSid);
+
   void newMessageNotification(String conversationSid, int messageIndex);
+
   void notificationSubscribed();
+
   void notificationFailed(ErrorInfoData errorInfoData);
+
   void removedFromConversationNotification(String conversationSid);
+
   void registered();
+
   void registrationFailed(ErrorInfoData errorInfoData);
+
   void deregistered();
+
   void deregistrationFailed(ErrorInfoData errorInfoData);
+
   void messageAdded(String conversationSid, MessageData messageData);
+
   void messageUpdated(
       String conversationSid, MessageData messageData, String reason);
+
   void messageDeleted(String conversationSid, MessageData messageData);
+
   void participantAdded(
       String conversationSid, ParticipantData participantData);
+
   void participantUpdated(
       String conversationSid, ParticipantData participantData, String reason);
+
   void participantDeleted(
       String conversationSid, ParticipantData participantData);
+
   void typingStarted(String conversationSid, ConversationData conversationData,
       ParticipantData participantData);
+
   void typingEnded(String conversationSid, ConversationData conversationData,
       ParticipantData participantData);
+
   void synchronizationChanged(
       String conversationSid, ConversationData conversationData);
+
   static void setup(FlutterConversationClientApi? api) {
     {
       const BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
@@ -2801,6 +2842,7 @@ abstract class FlutterLoggingApi {
   static const MessageCodec<Object?> codec = _FlutterLoggingApiCodec();
 
   void logFromHost(String msg);
+
   static void setup(FlutterLoggingApi? api) {
     {
       const BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
