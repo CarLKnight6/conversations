@@ -468,19 +468,24 @@ class PluginApi {
       final Map<Object?, Object?>? replyMap =
           await channel.send(<Object>[arg_jwtToken, arg_properties])
               as Map<Object?, Object?>?;
-      if (replyMap != null && replyMap['error'] != null) {
-        final Map<Object?, Object?> error =
-            (replyMap['error'] as Map<Object?, Object?>?)!;
+      if (replyMap == null) {
+        throw PlatformException(
+          code: 'channel-error',
+          message: 'Unable to establish connection on channel. $arg_jwtToken - $arg_properties',
+          details: null,
+        );
+      } else if (replyMap['error'] != null) {
+        final Map<Object?, Object?> error = (replyMap['error'] as Map<Object?, Object?>?)!;
         throw PlatformException(
           code: (error['code'] as String?)!,
           message: error['message'] as String?,
           details: error['details'],
         );
       } else {
-        return (replyMap!['result'] as ConversationClientData?)!;
+        return (replyMap['result'] as ConversationClientData?)!;
       }
     } catch (e) {
-      print("TwilioConversationsPlugin create error $e");
+      print("TwilioConversationsPlugin create error $e  - $arg_jwtToken - $arg_properties");
       throw PlatformException(
         code: 'channel-error',
         message: 'Error creating plugin: $e',
