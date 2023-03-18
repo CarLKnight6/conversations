@@ -80,18 +80,20 @@ class TwilioConversationsPlugin : FlutterPlugin {
 
     override fun onAttachedToEngine(@NonNull flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
         instance = this
+        applicationContext = flutterPluginBinding.applicationContext
         messenger = flutterPluginBinding.binaryMessenger
+
+        Api.PluginApi.setup(flutterPluginBinding.binaryMessenger, pluginApi)
+        Api.ConversationClientApi.setup(flutterPluginBinding.binaryMessenger, conversationClientApi)
+        Api.ConversationApi.setup(flutterPluginBinding.binaryMessenger, conversationApi)
+
         if (initialized) {
             Log.d(LOG_TAG, "TwilioConversationsPlugin.onAttachedToEngine: already initialized")
             return
         } else {
             Log.d(LOG_TAG, "TwilioConversationsPlugin.onAttachedToEngine")
         }
-        applicationContext = flutterPluginBinding.applicationContext
 
-        Api.PluginApi.setup(flutterPluginBinding.binaryMessenger, pluginApi)
-        Api.ConversationClientApi.setup(flutterPluginBinding.binaryMessenger, conversationClientApi)
-        Api.ConversationApi.setup(flutterPluginBinding.binaryMessenger, conversationApi)
         Api.ParticipantApi.setup(flutterPluginBinding.binaryMessenger, participantApi)
         Api.MessageApi.setup(flutterPluginBinding.binaryMessenger, messageApi)
         Api.UserApi.setup(flutterPluginBinding.binaryMessenger, userApi)
