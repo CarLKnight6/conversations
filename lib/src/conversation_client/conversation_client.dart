@@ -192,7 +192,7 @@ class ConversationClient extends FlutterConversationClientApi {
   Future<void> shutdown() async {
     try {
       TwilioConversations.conversationClient = null;
-      //FlutterConversationClientApi.setup(null);
+      FlutterConversationClientApi.setup(null);
       await TwilioConversations().conversationsClientApi.shutdown();
     } on PlatformException catch (err) {
       throw TwilioConversations.convertException(err);
