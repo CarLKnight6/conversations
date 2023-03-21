@@ -24,6 +24,9 @@ class TwilioConversationsPlugin : FlutterPlugin {
         @JvmStatic
         lateinit var instance: TwilioConversationsPlugin
 
+        @JvmStatic
+        lateinit var currentFlutterPluginBinding: FlutterPlugin.FlutterPluginBinding
+
         // Flutter > Host APIs
         @JvmStatic
         val pluginApi: Api.PluginApi = PluginMethods()
@@ -79,6 +82,14 @@ class TwilioConversationsPlugin : FlutterPlugin {
     }
 
     override fun onAttachedToEngine(@NonNull flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
+        if (initialized) {
+            Log.d(LOG_TAG, "TwilioConversationsPlugin.onAttachedToEngine: already initialized")
+            flutterPluginBinding = currentFlutterPluginBinding
+        } else {
+            Log.d(LOG_TAG, "TwilioConversationsPlugin.onAttachedToEngine")
+            currentFlutterPluginBinding = flutterPluginBinding
+        }
+
         instance = this
         applicationContext = flutterPluginBinding.applicationContext
         messenger = flutterPluginBinding.binaryMessenger
@@ -89,16 +100,8 @@ class TwilioConversationsPlugin : FlutterPlugin {
         Api.ParticipantApi.setup(flutterPluginBinding.binaryMessenger, participantApi)
         Api.UserApi.setup(flutterPluginBinding.binaryMessenger, userApi)
         Api.MessageApi.setup(flutterPluginBinding.binaryMessenger, messageApi)
-        flutterLoggingApi = Api.FlutterLoggingApi(flutterPluginBinding.binaryMessenger)
-
-        if (initialized) {
-            Log.d(LOG_TAG, "TwilioConversationsPlugin.onAttachedToEngine: already initialized")
-            return
-        } else {
-            Log.d(LOG_TAG, "TwilioConversationsPlugin.onAttachedToEngine")
-        }
-
         flutterClientApi = Api.FlutterConversationClientApi(flutterPluginBinding.binaryMessenger)
+        flutterLoggingApi = Api.FlutterLoggingApi(flutterPluginBinding.binaryMessenger)
 
         initialized = true
     }
