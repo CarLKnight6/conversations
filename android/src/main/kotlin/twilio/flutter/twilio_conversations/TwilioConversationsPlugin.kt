@@ -24,9 +24,6 @@ class TwilioConversationsPlugin : FlutterPlugin {
         @JvmStatic
         lateinit var instance: TwilioConversationsPlugin
 
-        @JvmStatic
-        lateinit var currentFlutterPluginBinding: FlutterPlugin.FlutterPluginBinding
-
         // Flutter > Host APIs
         @JvmStatic
         val pluginApi: Api.PluginApi = PluginMethods()
@@ -82,26 +79,26 @@ class TwilioConversationsPlugin : FlutterPlugin {
     }
 
     override fun onAttachedToEngine(@NonNull flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
-        if (initialized) {
-            Log.d(LOG_TAG, "TwilioConversationsPlugin.onAttachedToEngine: already initialized")
-            messenger = currentFlutterPluginBinding.binaryMessenger
-        } else {
-            Log.d(LOG_TAG, "TwilioConversationsPlugin.onAttachedToEngine")
-            messenger = flutterPluginBinding.binaryMessenger
-            currentFlutterPluginBinding = flutterPluginBinding
-        }
-
         instance = this
         applicationContext = flutterPluginBinding.applicationContext
+        messenger = flutterPluginBinding.binaryMessenger
 
-        Api.PluginApi.setup(messenger, pluginApi)
-        Api.ConversationClientApi.setup(messenger, conversationClientApi)
-        Api.ConversationApi.setup(messenger, conversationApi)
-        Api.ParticipantApi.setup(messenger, participantApi)
-        Api.UserApi.setup(messenger, userApi)
-        Api.MessageApi.setup(messenger, messageApi)
-        flutterClientApi = Api.FlutterConversationClientApi(messenger)
-        flutterLoggingApi = Api.FlutterLoggingApi(messenger)
+        Api.PluginApi.setup(flutterPluginBinding.binaryMessenger, pluginApi)
+        Api.ConversationClientApi.setup(flutterPluginBinding.binaryMessenger, conversationClientApi)
+        Api.ConversationApi.setup(flutterPluginBinding.binaryMessenger, conversationApi)
+        Api.ParticipantApi.setup(flutterPluginBinding.binaryMessenger, participantApi)
+        Api.UserApi.setup(flutterPluginBinding.binaryMessenger, userApi)
+        Api.MessageApi.setup(flutterPluginBinding.binaryMessenger, messageApi)
+        flutterLoggingApi = Api.FlutterLoggingApi(flutterPluginBinding.binaryMessenger)
+
+        if (initialized) {
+            Log.d(LOG_TAG, "TwilioConversationsPlugin.onAttachedToEngine: already initialized")
+            return
+        } else {
+            Log.d(LOG_TAG, "TwilioConversationsPlugin.onAttachedToEngine")
+        }
+
+        flutterClientApi = Api.FlutterConversationClientApi(flutterPluginBinding.binaryMessenger)
 
         initialized = true
     }
