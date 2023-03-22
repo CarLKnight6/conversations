@@ -77,6 +77,8 @@ class TwilioConversations extends FlutterLoggingApi {
   }) async {
     assert(jwtToken.isNotEmpty);
 
+    log('create conversation plugin => token: $jwtToken');
+
     conversationClient = ConversationClient();
 
     //TODO Needs to throw a better error when trying
