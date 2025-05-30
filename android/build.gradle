@@ -1,16 +1,14 @@
-group 'twilio.flutter.twilio_conversations'
-version '1.0-SNAPSHOT'
+group 'com.example.twilio_chat_conversation'
+version '1.0'
 
 buildscript {
-    ext.kotlin_version = '1.8.0'
     repositories {
         google()
         mavenCentral()
     }
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:3.5.0'
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:1.8.10"
+        classpath 'com.android.tools.build:gradle:8.0.2'
     }
 }
 
@@ -22,30 +20,28 @@ rootProject.allprojects {
 }
 
 apply plugin: 'com.android.library'
-apply plugin: 'kotlin-android'
 
 android {
     namespace 'com.twilio.conversations'
-    compileSdkVersion 29
+    compileSdkVersion 34
 
-    sourceSets {
-        main.java.srcDirs += 'src/main/kotlin'
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
     }
+
     defaultConfig {
-        minSdkVersion 19
-    }
-    lintOptions {
-        disable 'InvalidPackage'
-    }
-    kotlinOptions {
-        jvmTarget = '1.8'
+        minSdkVersion 21
     }
 }
-
 dependencies {
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
-    implementation 'com.twilio:conversations-android:1.6.0'
+    implementation 'com.twilio:conversations-android:6.0.0'
+    implementation 'com.twilio.sdk:twilio:9.6.0'
 
-    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.4.2"
-    implementation 'com.android.support:multidex:2.0.1'
+
+
+    //implementation fileTree(include: ['*.jar', '*.aar'], dir: 'libs')
+    // implementation files('libs/twilio-conversations-android-5.1.1.aar')
+    implementation 'com.google.firebase:protolite-well-known-types:18.0.0'
+
 }
