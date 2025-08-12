@@ -26,12 +26,36 @@ class ParticipantMethods : Api.ParticipantApi {
 
         client.getConversation(conversationSid, object : CallbackListener<Conversation> {
             override fun onSuccess(conversation: Conversation) {
-                val participant = conversation.getParticipantBySid(participantSid)
-                    ?: return result.error(NotFoundException("No participant found with SID: $participantSid"))
+                try {
+                    fun fetchParticipant() {
+                        val participant = conversation.getParticipantBySid(participantSid)
+                            ?: return result.error(NotFoundException("No participant found with SID: $participantSid"))
 
-                participant.getAndSubscribeUser {
-                    debug("getUser => onSuccess")
-                    result.success(Mapper.userToPigeon(it))
+                        participant.getAndSubscribeUser {
+                            debug("getUser => onSuccess")
+                            result.success(Mapper.userToPigeon(it))
+                        }
+                    }
+
+                    if (conversation.synchronizationStatus != Conversation.SynchronizationStatus.ALL) {
+                        debug("getUser => conversation not synced, synchronizing...")
+                        conversation.synchronize(object : StatusListener {
+                            override fun onSuccess() {
+                                debug("getUser => synchronization complete")
+                                fetchParticipant()
+                            }
+
+                            override fun onError(errorInfo: ErrorInfo) {
+                                debug("getUser => sync failed: $errorInfo")
+                                result.error(TwilioException(errorInfo.code, errorInfo.message))
+                            }
+                        })
+                    } else {
+                        fetchParticipant()
+                    }
+                } catch (e: Exception) {
+                    debug("getUser => Exception: ${e.message}")
+                    result.error(TwilioException(-1, e.message ?: "Unknown error"))
                 }
             }
 
