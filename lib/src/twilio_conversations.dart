@@ -69,11 +69,7 @@ class TwilioConversations extends FlutterLoggingApi {
   static bool _dartDebug = false;
   static ConversationClient? conversationClient;
 
-  // Retry configuration
-  static const int _maxRetries = 3;
-  static const Duration _retryDelay = Duration(seconds: 2);
-
-  /// Create a [ConversationClient] with retry logic for channel errors.
+  /// Create a [ConversationClient] with retry logic.
   Future<ConversationClient?> create({
     required String jwtToken,
     Properties properties = const Properties(),
@@ -81,22 +77,22 @@ class TwilioConversations extends FlutterLoggingApi {
   }) async {
     assert(jwtToken.isNotEmpty);
 
-    log('create conversation plugin => token: ${jwtToken.substring(0, 50)}...');
-    log('Attempt ${retryCount + 1} of $_maxRetries');
+    log('create conversation plugin => token2: ${jwtToken.substring(0, 50)}...');
+    log('Attempt ${retryCount + 1}');
 
     conversationClient = ConversationClient();
 
     try {
-      // Add a small delay before native call to ensure channel is ready
+      // Add delay to ensure channel is ready
       await Future.delayed(const Duration(milliseconds: 500));
 
-      log('Calling native pluginApi.create()...');
+      log('Calling native create()...');
 
       final ConversationClientData result =
           await pluginApi.create(jwtToken, properties.toPigeon()).timeout(
         const Duration(seconds: 30),
         onTimeout: () {
-          throw TimeoutException('Native create() timed out after 30 seconds');
+          throw TimeoutException('Native create() timed out');
         },
       );
 
@@ -108,34 +104,12 @@ class TwilioConversations extends FlutterLoggingApi {
     } on PlatformException catch (e) {
       log('❌ PlatformException: ${e.code} - ${e.message}');
 
-      // Retry on channel-error or timeout
+      // Retry on channel-error up to 3 times
       if ((e.code == 'channel-error' ||
-              e.message?.contains('Unable to establish connection') == true ||
-              e.message?.contains('timeout') == true) &&
-          retryCount < _maxRetries) {
-        log('⏳ Retrying in ${_retryDelay.inSeconds} seconds... (Attempt ${retryCount + 1}/$_maxRetries)');
-
-        await Future.delayed(_retryDelay);
-
-        // Clear the client and retry
-        conversationClient = null;
-        return create(
-          jwtToken: jwtToken,
-          properties: properties,
-          retryCount: retryCount + 1,
-        );
-      }
-
-      // If max retries exceeded or different error, give up
-      conversationClient = null;
-      log('❌ create => Max retries exceeded or non-retryable error: $e');
-      rethrow;
-    } on TimeoutException catch (e) {
-      log('❌ TimeoutException: $e');
-
-      if (retryCount < _maxRetries) {
-        log('⏳ Retrying after timeout... (Attempt ${retryCount + 1}/$_maxRetries)');
-        await Future.delayed(_retryDelay);
+              e.message?.contains('Unable to establish connection') == true) &&
+          retryCount < 3) {
+        log('⏳ Retrying (${retryCount + 1}/3)...');
+        await Future.delayed(const Duration(seconds: 2));
         conversationClient = null;
         return create(
           jwtToken: jwtToken,
@@ -145,28 +119,12 @@ class TwilioConversations extends FlutterLoggingApi {
       }
 
       conversationClient = null;
+      log('❌ create => Error: $e');
       rethrow;
     } catch (e) {
       log('❌ Unexpected error: $e');
       conversationClient = null;
       rethrow;
-    }
-  }
-
-  /// Check if the native channel is working
-  Future<bool> isChannelReady() async {
-    try {
-      log('Checking if native channel is ready...');
-      await Future.delayed(const Duration(milliseconds: 100));
-
-      // Try a simple debug call to verify channel
-      await pluginApi.debug(false, false);
-
-      log('✅ Native channel is ready');
-      return true;
-    } catch (e) {
-      log('❌ Native channel error: $e');
-      return false;
     }
   }
 
@@ -204,22 +162,17 @@ class TwilioConversations extends FlutterLoggingApi {
     return err;
   }
 
-  /// Internal logging method for dart.
   static void log(dynamic msg) {
     if (_dartDebug) {
       print('[   DART   ] $msg');
     }
   }
 
-  /// Host to Flutter logging API
   @override
   void logFromHost(String msg) {
     print('[  NATIVE  ] $msg');
   }
 
-  /// Enable debug logging.
-  ///
-  /// For native logging set [native] to `true` and for dart set [dart] to `true`.
   static Future<void> debug({
     bool dart = false,
     bool native = false,
